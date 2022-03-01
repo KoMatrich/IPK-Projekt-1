@@ -13,11 +13,6 @@ void Packet::decode(string msg)
 		} else
 			pos = line.find(": ");
 
-		if (pos < 0 || pos >= line.size()) {
-			cerr << "Decode failed to find separator" << endl;
-			return;
-		}
-
 		string key = line.substr(0, pos);
 		string value;
 		if (key == "\r") {
@@ -26,6 +21,10 @@ void Packet::decode(string msg)
 			this->set(key, value);
 			break;
 		} else {
+			if (pos < 0 || pos >= line.size()) {
+				cerr << "Decode failed to find separator" << endl;
+				return;
+			}
 			value = line.substr(pos + 1, line.length() - pos - 2);
 			this->set(key, value);
 		}

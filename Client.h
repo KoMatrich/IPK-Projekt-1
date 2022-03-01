@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include <unistd.h>
 
 class Client
 {
@@ -11,6 +12,11 @@ public:
 	{
 		this->connfd = id;
 		this->print("created");
+	}
+	~Client()
+	{
+		this->print("closed");
+		close(this->connfd);
 	}
 
 	int get_socket()

@@ -13,7 +13,7 @@
 
 #include "Response.h"
 
-using Client_handler = Packet(*)(const Client, const Packet, const Response_handler);
+using Client_handler = Packet& (*)(Packet&, Response_handler&);
 
 class Server
 {
@@ -31,6 +31,6 @@ public:
 	int accept_con();
 	void start(Client_handler client_handler);
 
-	void get_request(Client* client, Packet* request_p);
-	void set_response(Client* client, Packet* packet_r);
+	Packet get_request(Client *client);
+	void set_response(Client *client, Packet &packet_r);
 };

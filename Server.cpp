@@ -65,8 +65,7 @@ void Server::start(Client_handler client_handler)
 
 	this->running = true;
 	while (this->running) {
-		Client client(this->accept_con());
-
+		Client *client = new Client(this->accept_con());
 #ifndef SINGLE_THREAD
 		int pid = fork();
 		if (pid < 0) {
@@ -74,15 +73,13 @@ void Server::start(Client_handler client_handler)
 		}
 		if (pid == 0) {
 #endif // SINGLE_THREAD
-			Packet request_p, response_p;
-			this->get_request(&client, &request_p);
+			Packet request_p = this->get_request(client);
 
-			response_p = client_handler(client, request_p, this->response_handler);
+			Packet response_p = client_handler(request_p, this->response_handler);
 
-			this->set_response(&client, &response_p);
+			this->set_response(client, response_p);
 
-			client.print("terminated");
-			close(client.get_socket());
+			delete client;
 #ifndef SINGLE_THREAD
 			exit(0);
 		}
@@ -90,7 +87,7 @@ void Server::start(Client_handler client_handler)
 	}
 }
 
-void Server::get_request(Client* client, Packet* request_p)
+Packet Server::get_request(Client *client)
 {
 	array<char, 1024> buf{};
 
@@ -101,12 +98,12 @@ void Server::get_request(Client* client, Packet* request_p)
 
 	client->print("data recived");
 
-	*request_p = Packet(msg);
+	return Packet(msg);
 }
 
-void Server::set_response(Client* client, Packet* packet_r)
+void Server::set_response(Client *client, Packet &packet_r)
 {
-	string msg = packet_r->encode();
+	string msg = packet_r.encode();
 	if (send(client->get_socket(), msg.data(), msg.size(), 0) < 0)
 		perror("sending");
 

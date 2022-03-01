@@ -1,7 +1,6 @@
 ﻿#include "Common.h"
 #include "Response.h"
 #include "server.h"
-#include "client.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -52,9 +51,9 @@ bool get_system_times(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtua
 	ioWait = irq = softIrq = steal = guest = guestnice = 0;
 
 	// Iterate over all CPU's and pipe the sum
-	const char* shcommand("cat /proc/stat | grep 'cpu' | sed 's/  / /g' | awk -F' ' '{s2+=$2;s3+=$3;s4+=$4;s5+=$5;s6+=$6;s7+=$7;s8+=$8;s9+=$9;s10+=$10;s11+=$11} END {print s2,s3,s4,s5,s6,s7,s8,s9,s10,s11}'");
+	std::string shcommand("cat /proc/stat | grep 'cpu' | sed 's/  / /g' | awk -F' ' '{s2+=$2;s3+=$3;s4+=$4;s5+=$5;s6+=$6;s7+=$7;s8+=$8;s9+=$9;s10+=$10;s11+=$11} END {print s2,s3,s4,s5,s6,s7,s8,s9,s10,s11}'");
 
-	FILE* pipe = popen(shcommand, "r");
+	FILE* pipe = popen(shcommand.c_str(), "r");
 	if (!pipe) {
 		return false;
 	}
@@ -67,6 +66,8 @@ bool get_system_times(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtua
 	// Guest time is already accounted in usertime
 	usertime = usertime - guest;
 	nicetime = nicetime - guestnice;
+
+
 
 	// Fields existing on kernels >= 2.6
 	// (and RHEL's patched kernel 2.4...)
@@ -91,7 +92,7 @@ Response r_load()
 	using namespace std::this_thread;     // sleep_for, sleep_until
 	using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
 	using std::chrono::system_clock;
-	sleep_for(2s);
+	sleep_for(1s);
 
 	if (!get_system_times(&idlenow, &systemnow, &virtualnow)) {
 		perror("Shell CMD failed");
@@ -110,7 +111,8 @@ Response r_load()
 	}
 }
 
-Packet client_handler(Client client, Packet request_p, Response_handler response_handler) {
+Packet& client_handler(Packet& request_p, Response_handler& response_handler)
+{
 	string get_req = request_p.get("GET");
 	get_req = get_req.substr(0, get_req.find(" "));
 
@@ -118,15 +120,15 @@ Packet client_handler(Client client, Packet request_p, Response_handler response
 
 	string head = to_string(response.get_code()) + " " + response.get_e_msg();
 
-	Packet response_p;
-	response_p.set("HTTP/1.1", head);
-	response_p.set("Content-type", "text/html");
+	auto* response_p = new Packet();
+	response_p->set("HTTP/1.1", head);
+	response_p->set("Content-type", "text/html");
 	if (response.get_code() < 500)
-		response_p.set("Body", response.get_msg());
+		response_p->set("Body", response.get_msg());
 	else
-		response_p.set("Body", head);
+		response_p->set("Body", head);
 
-	return response_p;
+	return *response_p;
 }
 
 int main(int argc, char* argv[])
