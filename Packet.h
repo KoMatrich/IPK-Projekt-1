@@ -17,6 +17,7 @@ public:
 		this->decode(msg);
 	};
 	Packet() {};
+
 	void decode(string msg);
 	string encode();
 

@@ -110,7 +110,25 @@ Response r_load()
 	}
 }
 
-#define DEBUG
+Packet client_handler(Client client, Packet request_p, Response_handler response_handler) {
+	string get_req = request_p.get("GET");
+	get_req = get_req.substr(0, get_req.find(" "));
+
+	Response response = response_handler.get(get_req);
+
+	string head = to_string(response.get_code()) + " " + response.get_e_msg();
+
+	Packet response_p;
+	response_p.set("HTTP/1.1", head);
+	response_p.set("Content-type", "text/html");
+	if (response.get_code() < 500)
+		response_p.set("Body", response.get_msg());
+	else
+		response_p.set("Body", head);
+
+	return response_p;
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc == 1) {
@@ -131,49 +149,10 @@ int main(int argc, char* argv[])
 	Server server;
 	server.bind_to(portNumber);
 
-	ResponseHandler responses;
-	responses.set("/hostname", r_hostname);
-	responses.set("/cpu-name", r_cpu_name);
-	responses.set("/load", r_load);
+	server.response_handler.set("/hostname", r_hostname);
+	server.response_handler.set("/cpu-name", r_cpu_name);
+	server.response_handler.set("/load", r_load);
 
 	server.listen_for(5);
-	while (true) {
-		Client client(server.accept_con());
-
-#ifndef DEBUG
-		int pid = fork();
-		if (pid < 0) {
-			handle_error("Fork failed");
-		}
-
-		if (pid == 0) {
-#endif // DEBUG
-
-			Packet request_p, response_p;
-			server.get_request(&client, &request_p);
-
-			string get_req = request_p.get("GET");
-			get_req = get_req.substr(0, get_req.find(" "));
-
-			Response response = responses.get(get_req);
-
-			string head = to_string(response.get_code()) + " " + response.get_e_msg();
-
-			response_p.set("HTTP/1.1", head);
-			response_p.set("Content-type", "text/html");
-			if (response.get_code() < 500)
-				response_p.set("Body", response.get_msg());
-			else
-				response_p.set("Body", head);
-
-			server.set_response(&client, &response_p);
-
-			close(client.get_socket());
-			cout << client.get_socket() << " connection, terminated" << endl;
-
-#ifndef DEBUG
-			exit(0);
-		}
-#endif // DEBUG
-	}
+	server.start(client_handler);
 }

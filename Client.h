@@ -10,10 +10,13 @@ public:
 	Client(int id)
 	{
 		this->connfd = id;
+		this->print("created");
 	}
 
 	int get_socket()
 	{
 		return connfd;
 	}
+
+	void print(const char* fmt, ...);
 };

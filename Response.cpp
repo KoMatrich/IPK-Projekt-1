@@ -37,8 +37,7 @@ const char* Response::get_e_msg()
 	}
 }
 
-
-Response ResponseHandler::get(string request)
+Response Response_handler::get(string request)
 {
 	if (this->list.find(request) == this->list.end()) {
 		return Response();

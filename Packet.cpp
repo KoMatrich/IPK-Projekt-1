@@ -13,8 +13,10 @@ void Packet::decode(string msg)
 		} else
 			pos = line.find(": ");
 
-		if (pos < 0 || pos >= line.size())
-			perror("Decode failed to find separator");
+		if (pos < 0 || pos >= line.size()) {
+			cerr << "Decode failed to find separator" << endl;
+			return;
+		}
 
 		string key = line.substr(0, pos);
 		string value;

@@ -51,9 +51,43 @@ int Server::accept_con()
 		handle_error("accept");
 
 	client_id;
-
-	cout << client_id << " connection, accepted" << endl;
 	return client_id;
+}
+
+#define SINGLE_THREAD
+
+void Server::start(Client_handler client_handler)
+{
+	if (running) {
+		perror("Server is already running !");
+		return;
+	}
+
+	this->running = true;
+	while (this->running) {
+		Client client(this->accept_con());
+
+#ifndef SINGLE_THREAD
+		int pid = fork();
+		if (pid < 0) {
+			handle_error("Fork failed");
+		}
+		if (pid == 0) {
+#endif // SINGLE_THREAD
+			Packet request_p, response_p;
+			this->get_request(&client, &request_p);
+
+			response_p = client_handler(client, request_p, this->response_handler);
+
+			this->set_response(&client, &response_p);
+
+			client.print("terminated");
+			close(client.get_socket());
+#ifndef SINGLE_THREAD
+			exit(0);
+		}
+#endif // SINGLE_THREAD
+	}
 }
 
 void Server::get_request(Client* client, Packet* request_p)
@@ -65,7 +99,7 @@ void Server::get_request(Client* client, Packet* request_p)
 
 	string msg(buf.data());
 
-	cout << client->get_socket() << " connection, data recived" << endl;
+	client->print("data recived");
 
 	*request_p = Packet(msg);
 }
@@ -76,5 +110,5 @@ void Server::set_response(Client* client, Packet* packet_r)
 	if (send(client->get_socket(), msg.data(), msg.size(), 0) < 0)
 		perror("sending");
 
-	cout << client->get_socket() << " connection, data sent" << endl;
+	client->print("data sent");
 }

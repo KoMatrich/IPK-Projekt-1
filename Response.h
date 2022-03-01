@@ -27,12 +27,12 @@ public:
 
 using response_func = Response(*)();
 
-class ResponseHandler
+class Response_handler
 {
 private:
 	map<string, response_func> list;
 public:
-	ResponseHandler()
+	Response_handler()
 	{
 		this->list;
 	}
