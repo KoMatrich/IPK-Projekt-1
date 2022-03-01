@@ -83,6 +83,7 @@ void Server::start(Client_handler client_handler)
 #ifndef SINGLE_THREAD
 			exit(0);
 		}
+		delete client;
 #endif // SINGLE_THREAD
 	}
 }
