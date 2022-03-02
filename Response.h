@@ -32,11 +32,6 @@ class Response_handler
 private:
 	map<string, response_func> list;
 public:
-	Response_handler()
-	{
-		this->list;
-	}
-
 	void set(string response, response_func func)
 	{
 		this->list.emplace(response, func);
