@@ -10,9 +10,13 @@
 #include <array>
 #include <math.h>
 
+/// <summary>
+/// 
+/// </summary>
+/// <returns>hostname</returns>
 Response r_hostname()
 {
-	array<char, 128> buf{};
+	array<char, 50> buf{};
 
 	gethostname(buf.data(), buf.max_size());
 	buf.back() = '\0';
@@ -22,22 +26,28 @@ Response r_hostname()
 
 Response r_cpu_name()
 {
-	const char* command("cat /proc/cpuinfo | grep 'model name' | head -n 1 | awk -F ':' '{ print $2 }' | sed -e 's/^[[:space:]]*//'");
-	array<char, 128> buf{};
+	static array<char, 50> buf{};
+	static bool init = false;
 
-	FILE* pipe = popen(command, "r");
-	if (!pipe) {
-		std::cerr << "Couldn't start shell command.\n";
-		return Response(500);
-	}
+	//run only once
+	//cpu wont be replaced durning operation
+	if (!init) {
+		const char* command("cat /proc/cpuinfo | grep 'model name' | head -n 1 | awk -F ':' '{ print $2 }' | sed -e 's/^[[:space:]]*//'");
+		FILE* pipe = popen(command, "r");
+		if (!pipe) {
+			std::cerr << "Couldn't start shell command.\n";
+			return Response(500);
+		}
 
-	fgets(buf.data(), 128, pipe);
-	pclose(pipe);
+		fgets(buf.data(), 128, pipe);
+		pclose(pipe);
 
-	//removes new line character
-	for (int i = 0; i < buf.size(); i++) {
-		if (buf.at(i) == '\n')
-			buf.at(i) = '\0';
+		//removes new line character
+		for (int i = 0; i < buf.size(); i++) {
+			if (buf.at(i) == '\n')
+				buf.at(i) = '\0';
+		}
+		init = true;
 	}
 
 	return Response(buf.data());
