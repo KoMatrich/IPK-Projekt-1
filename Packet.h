@@ -6,6 +6,10 @@
 #include <map>
 #include <sstream>
 
+/// <summary>
+/// Stores data of packet in map and their order,
+/// in which they have been first inicialized
+/// </summary>
 class Packet
 {
 private:
@@ -20,20 +24,23 @@ public:
 	Packet() {};
 
 	/// <summary>
-	/// Decodes string to packet class
+	/// Decodes string and packet class values
 	/// </summary>
 	/// <param name="msg"></param>
 	void decode(string msg);
 
 	/// <summary>
-	/// Returns packet coded to string
+	/// Encodes packet class to string
 	/// </summary>
-	/// <returns></returns>
+	/// <returns>
+	/// packet coded to string
+	/// </returns>
 	string encode();
 
 	/// <summary>
-	/// Sets certain value to key,
-	/// if key is not found then it will be added to end
+	/// Sets certain value to key
+	/// new keys will be added to end
+	/// (order sensitive)
 	/// </summary>
 	/// <param name="key"></param>
 	/// <param name="value"></param>
@@ -41,9 +48,11 @@ public:
 
 	/// <summary>
 	/// Gets value from given key,
-	/// if key is not present returns empty string
 	/// </summary>
 	/// <param name="key"></param>
-	/// <returns></returns>
+	/// <returns>
+	/// value of given key if found,
+	/// else empty string
+	/// </returns>
 	string get(string key);
 };

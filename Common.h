@@ -4,6 +4,7 @@ using namespace std;
 
 #include <string>
 #include <iostream>
+#include <cstdarg>
 
 //check if string is whole positive number
 int inline isDigit(string s) {
@@ -17,7 +18,27 @@ int inline isDigit(string s) {
 	return 1;
 }
 
-void inline handle_error(string msg){
+void inline exit_errno(string msg){
 	perror(msg.c_str());
+	exit(EXIT_FAILURE);
+}
+
+void inline print_error(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	fprintf(stderr, fmt, args);
+	fprintf(stderr, "\n");
+	va_end(args);
+	exit(EXIT_FAILURE);
+}
+
+void inline exit_error(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	fprintf(stderr,fmt, args);
+	fprintf(stderr,"\n");
+	va_end(args);
 	exit(EXIT_FAILURE);
 }

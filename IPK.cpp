@@ -135,11 +135,11 @@ int main(int argc, char* argv[])
 {
 	if (argc == 1) {
 		cerr << "No port number passed." << endl;
-		handle_error("Usage: ./hinfosvc PORT");
+		exit_error("Usage: ./hinfosvc PORT");
 	}
 
 	if (argc > 2)
-		handle_error("Too many aguments.");
+		exit_error("Too many aguments.");
 
 	string portString = argv[1];
 	if (!isDigit(portString)) {
