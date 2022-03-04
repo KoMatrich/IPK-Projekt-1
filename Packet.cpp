@@ -6,23 +6,29 @@ void Packet::decode(string msg)
 	stringstream msg_stream(msg.c_str());
 	bool first = true;
 	while (getline(msg_stream, line)) {
+		//KEY+SEPARATOR+value
 		auto pos = 0;
 		if (first) {
 			first = false;
 			pos = line.find(' ');
-		} else
+			//HEAD/GET/POST+' '+value
+		} else {
 			pos = line.find(": ");
-
+			//ATRIBUTE+": "+value
+		}
 		string key = line.substr(0, pos);
 		string value;
+
 		if (key == "\r") {
+			//Body begins we dont need another data
 			key = "Body";
 			value = "";
 			this->set(key, value);
 			break;
 		} else {
+			//NOT BODY PARTS
 			if (pos < 0 || pos >= line.size()) {
-				cerr << "Decode failed to find separator" << endl;
+				print_error("Decode failed to find separator");
 				return;
 			}
 			value = line.substr(pos + 1, line.length() - pos - 2);
@@ -35,9 +41,11 @@ string Packet::encode()
 {
 	string msg;
 	for (string key : this->insertOrder) {
+		//skips Body and Content-Lenght
 		if (key == "Body" || key == "Content-Lenght")
 			continue;
 
+		//adds everything else in order to message in proper format
 		msg.append(key);
 		if (key == this->insertOrder.front())
 			msg.append(" ");
@@ -47,6 +55,8 @@ string Packet::encode()
 		msg.append("\n");
 	}
 
+	//all atributes have been added to message
+	//last thing missing is content-lenght and body
 	msg.append("Content-Lenght: ");
 	int len = this->get("Body").size();
 	msg.append(to_string(len));

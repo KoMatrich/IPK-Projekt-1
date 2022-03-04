@@ -113,20 +113,25 @@ Response r_load()
 
 Packet& client_handler(Packet& request_p, Response_handler& response_handler)
 {
+	//what is requested by GET
 	string get_req = request_p.get("GET");
+	//leaves just /etc and removes HTTP standart
 	get_req = get_req.substr(0, get_req.find(" "));
 
+	//gets correct response from response handler
 	Response response = response_handler.get(get_req);
 
-	string head = to_string(response.get_code()) + " " + response.get_e_msg();
+	//heading = return code + return code message
+	string heading = to_string(response.get_code()) + " " + response.get_e_msg();
 
+	//creates new packet with proper content
 	auto* response_p = new Packet();
-	response_p->set("HTTP/1.1", head);
+	response_p->set("HTTP/1.1", heading);
 	response_p->set("Content-type", "text/html");
 	if (response.get_code() < 500)
 		response_p->set("Body", response.get_msg());
 	else
-		response_p->set("Body", head);
+		response_p->set("Body", heading);
 
 	return *response_p;
 }
@@ -134,7 +139,7 @@ Packet& client_handler(Packet& request_p, Response_handler& response_handler)
 int main(int argc, char* argv[])
 {
 	if (argc == 1) {
-		cerr << "No port number passed." << endl;
+		print_error("No port number passed.");
 		exit_error("Usage: ./hinfosvc PORT");
 	}
 
