@@ -11,9 +11,11 @@
 #include <math.h>
 
 /// <summary>
-/// 
+/// function that handles "GET /hostname" request
 /// </summary>
-/// <returns>hostname</returns>
+/// <returns>
+/// hostname
+/// </returns>
 Response r_hostname()
 {
 	array<char, 50> buf{};
@@ -24,6 +26,7 @@ Response r_hostname()
 	return Response(buf.data());
 }
 
+/// <returns>cpu-name</returns>
 Response r_cpu_name()
 {
 	static array<char, 50> buf{};
@@ -53,18 +56,26 @@ Response r_cpu_name()
 	return Response(buf.data());
 }
 
-bool get_system_times(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtuallast)
+/// <summary>
+/// support function for r_load()
+/// </summary>
+/// <returns>
+/// time data
+/// </returns>
+bool system_time(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtuallast)
 {
-	// Different kernels hold up to 10 values
+	//source of main inspiration:
+	// https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux
+
 	long long unsigned int usertime, nicetime, systemtime, idletime;
 	long long unsigned int ioWait, irq, softIrq, steal, guest, guestnice;
-	ioWait = irq = softIrq = steal = guest = guestnice = 0;
 
 	// Iterate over all CPU's and pipe the sum
-	std::string shcommand("cat /proc/stat | grep 'cpu' | sed 's/  / /g' | awk -F' ' '{s2+=$2;s3+=$3;s4+=$4;s5+=$5;s6+=$6;s7+=$7;s8+=$8;s9+=$9;s10+=$10;s11+=$11} END {print s2,s3,s4,s5,s6,s7,s8,s9,s10,s11}'");
+	const char* cmd{"cat /proc/stat | grep 'cpu' | sed 's/  / /g' | awk -F' ' '{s2+=$2;s3+=$3;s4+=$4;s5+=$5;s6+=$6;s7+=$7;s8+=$8;s9+=$9;s10+=$10;s11+=$11} END {print s2,s3,s4,s5,s6,s7,s8,s9,s10,s11}'"};
 
-	FILE* pipe = popen(shcommand.c_str(), "r");
+	FILE* pipe = popen(cmd, "r");
 	if (!pipe) {
+		print_error("Bash cmd failed!(cpu)");
 		return false;
 	}
 
@@ -77,8 +88,6 @@ bool get_system_times(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtua
 	usertime = usertime - guest;
 	nicetime = nicetime - guestnice;
 
-
-
 	// Fields existing on kernels >= 2.6
 	// (and RHEL's patched kernel 2.4...)
 	*idlelast = idletime + ioWait;
@@ -88,13 +97,14 @@ bool get_system_times(uint64_t* idlelast, uint64_t* systemlast, uint64_t* virtua
 	return true;
 }
 
+/// <returns>cpu-name</returns>
 Response r_load()
 {
 	double usagepercent = -1;
 	uint64_t idlelast, systemlast, virtuallast;
 	uint64_t idlenow, systemnow, virtualnow;
 
-	if (!get_system_times(&idlelast, &systemlast, &virtuallast)) {
+	if (!system_time(&idlelast, &systemlast, &virtuallast)) {
 		perror("Shell CMD failed");
 		return Response(500);
 	}
@@ -104,7 +114,7 @@ Response r_load()
 	using std::chrono::system_clock;
 	sleep_for(1s);
 
-	if (!get_system_times(&idlenow, &systemnow, &virtualnow)) {
+	if (!system_time(&idlenow, &systemnow, &virtualnow)) {
 		perror("Shell CMD failed");
 		return Response(500);
 	}
@@ -121,6 +131,12 @@ Response r_load()
 	}
 }
 
+/// <summary>
+/// Client handeling function that calls correct response_handler
+/// </summary>
+/// <returns>
+/// response packet
+/// </returns>
 Packet& client_handler(Packet& request_p, Response_handler& response_handler)
 {
 	//what is requested by GET
