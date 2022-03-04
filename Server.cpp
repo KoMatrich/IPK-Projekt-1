@@ -52,9 +52,6 @@ int Server::accept_con()
 	return client_id;
 }
 
-//for debug 
-//#define SINGLE_THREAD
-
 void Server::start(Client_handler client_handler)
 {
 	if (running) {
@@ -65,13 +62,13 @@ void Server::start(Client_handler client_handler)
 	this->running = true;
 	while (this->running) {
 		Client *client = new Client(this->accept_con());
-#ifndef SINGLE_THREAD
+#ifndef DEBUG
 		int pid = fork();
 		if (pid < 0) {
 			exit_errno("fork");
 		}
 		if (pid == 0) {
-#endif // SINGLE_THREAD
+#endif // DEBUG
 			Packet request_p = this->get_request(client);
 
 			Packet response_p = client_handler(request_p, this->response_handler);
@@ -79,11 +76,11 @@ void Server::start(Client_handler client_handler)
 			this->set_response(client, response_p);
 
 			delete client;
-#ifndef SINGLE_THREAD
+#ifndef DEBUG
 			exit(0);
 		}
 		delete client;
-#endif // SINGLE_THREAD
+#endif // DEBUG
 	}
 }
 
