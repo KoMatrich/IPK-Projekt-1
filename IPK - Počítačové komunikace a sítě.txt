@@ -1,7 +1,9 @@
 ZADÁNÍ
 
 
-Úkolem je vytvoření serveru v jazyce C/C++ komunikujícího prostřednictvím protokolu HTTP, který bude poskytovat různé informace o systému. Server bude naslouchat na zadaném portu a podle url bude vracet požadované informace. Server musí správně zpracovávat hlavičky HTTP a vytvářet správné HTTP odpovědi. Typ odpovědi bude text/plain. Komunikace se serverem by měla být možná jak pomocí webového prohlížeče, tak nástroji typu wget a curl. Server musí být spustitelný v prostředí Linux Ubuntu 20.04 LTS  (https://ubuntu.com/).
+Úkolem je vytvoření serveru v jazyce C/C++ komunikujícího prostřednictvím protokolu HTTP, který bude poskytovat různé informace o systému. Server bude naslouchat na zadaném portu a 
+podle url bude vracet požadované informace. Server musí správně zpracovávat hlavičky HTTP a vytvářet správné HTTP odpovědi. Typ odpovědi bude text/plain. Komunikace se serverem by
+měla být možná jak pomocí webového prohlížeče, tak nástroji typu wget a curl. Server musí být spustitelný v prostředí Linux Ubuntu 20.04 LTS  (https://ubuntu.com/).
 
 Server bude přeložitelný pomocí Makefile, který vytvoří spustitelný soubor hinfosvc.
 Tento server bude spustitelný s argumentem označující lokální port na kterém bude naslouchat požadavkům:

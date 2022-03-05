@@ -1,5 +1,15 @@
 #include "Server.h"
 
+Server::Server()
+{
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock < 0)
+		exit_errno("socket creation");
+
+	setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &this->sock_opt_val, sizeof(int));
+	print("socket created");
+}
+
 void Server::set_port(int port)
 {
 	if (port > 65535)
@@ -8,17 +18,7 @@ void Server::set_port(int port)
 		exit_error("invalid port number");
 
 	this->port = port;
-	cout << "port set to: " << port << endl;
-}
-
-Server::Server()
-{
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock < 0)
-		exit_errno("socket creation");
-
-	setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &this->sock_opt_val, sizeof(int));
-	cout << "socket created" << endl;
+	print("port set to: %d", port);
 }
 
 void Server::bind_to(int port)
@@ -32,14 +32,16 @@ void Server::bind_to(int port)
 	if (bind(this->sock, (struct sockaddr*)&addr, sizeof addr) < 0)
 		exit_errno("socket bind");
 
-	cout << "socket binded" << endl;
+	print("socket binded");
 }
 
 void Server::listen_for(int count)
 {
+	if (this->port < 0)
+		exit_error("Port hasnt been bound.");
 	if (listen(this->sock, count) < 0)
 		exit_errno("socket listen");
-	cout << "listening for " << count << " conections" << endl;
+	print("listening for %d conections",count);
 }
 
 int Server::accept_con()
@@ -54,7 +56,7 @@ int Server::accept_con()
 
 void Server::start(Client_handler client_handler)
 {
-	if (running) {
+	if (this->running) {
 		print_error("Server is already running!");
 		return;
 	}
@@ -83,6 +85,17 @@ void Server::start(Client_handler client_handler)
 #endif // DEBUG
 	}
 }
+
+void Server::print(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	printf("server: ");
+	vprintf(fmt, args);
+	printf("\n");
+	va_end(args);
+}
+
 
 Packet Server::get_request(Client *client)
 {

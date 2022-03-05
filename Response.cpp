@@ -1,6 +1,5 @@
 #include "Response.h"
 
-//default response
 Response::Response()
 {
 	this->code = 501;
@@ -13,7 +12,6 @@ Response::Response(int code)
 	this->msg = this->get_e_msg();
 }
 
-//correct response with custom msg
 Response::Response(string msg)
 {
 	this->code = 200;
@@ -30,10 +28,6 @@ string Response::get_msg()
 	return this->msg;
 }
 
-/// <returns>
-/// message generated from return code in response,
-/// if code is not found returns "Uknown Return Code"
-/// </returns>
 const char* Response::get_e_msg()
 {
 	if (list.find(code) == list.end()) {
@@ -43,10 +37,6 @@ const char* Response::get_e_msg()
 	}
 }
 
-/// <returns>
-/// Returns response to request, if request is valid
-/// else returns default request (empty)
-/// </returns>
 Response Response_handler::get(string request)
 {
 	if (this->list.find(request) == this->list.end()) {
